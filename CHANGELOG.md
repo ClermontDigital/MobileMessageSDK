@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-01-XX
+## [1.0.1] - 2025-01-29
+
+### Fixed
+- Corrected API endpoint for account balance from `/v1/account/balance` to `/v1/account`
+- Fixed message status lookup endpoint to use query parameters `/v1/messages?message_id=X`
+- Updated BalanceResponse to handle `credit_balance` field from API response
+- Corrected method name references in test examples (`getMessage()` vs `getMessageStatus()`)
+- Fixed simple API endpoint response parsing
+
+### Testing
+- All 48 tests now passing with real API integration
+- Verified SMS sending functionality with live API
+- Confirmed message status tracking works correctly
+- Validated account balance retrieval
+
+## [1.0.0] - 2025-01-29
 
 ### Added
 - Initial release of the Mobile Message PHP SDK

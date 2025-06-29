@@ -131,20 +131,25 @@ class MobileMessageClient
      */
     public function getMessage(string $messageId): MessageStatusResponse
     {
-        $response = $this->makeRequest('GET', "v1/messages/{$messageId}");
+        $queryString = http_build_query(['message_id' => $messageId]);
+        $response = $this->makeRequest('GET', "v1/messages?{$queryString}");
         
-        return MessageStatusResponse::fromArray($response);
+        // The API returns results array, get the first result
+        $messageData = $response['results'][0] ?? [];
+        
+        return MessageStatusResponse::fromArray($messageData);
     }
 
     /**
      * Get account balance
      *
      * @return BalanceResponse
+     *
      * @throws MobileMessageException
      */
     public function getBalance(): BalanceResponse
     {
-        $response = $this->makeRequest('GET', 'v1/account/balance');
+        $response = $this->makeRequest('GET', 'v1/account');
         
         return BalanceResponse::fromArray($response);
     }

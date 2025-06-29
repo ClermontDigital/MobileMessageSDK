@@ -33,8 +33,8 @@ class BalanceResponse
     public static function fromArray(array $data): self
     {
         return new self(
-            (int) ($data['balance'] ?? 0),
-            $data['plan'] ?? ''
+            (int) ($data['credit_balance'] ?? $data['balance'] ?? 0),
+            $data['plan'] ?? $data['status'] ?? ''
         );
     }
 

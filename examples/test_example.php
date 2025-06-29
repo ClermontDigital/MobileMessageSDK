@@ -130,7 +130,7 @@ try {
             echo "🔍 Testing message status lookup...\n";
             sleep(2); // Wait a moment for the message to be processed
             
-            $status = $client->getMessageStatus($response->getMessageId());
+            $status = $client->getMessage($response->getMessageId());
             
             echo "✅ Message status retrieved:\n";
             echo "   📨 Message ID: {$status->getMessageId()}\n";
@@ -171,7 +171,7 @@ try {
             // Test 6: Test simple API endpoint
             echo "🎯 Testing simple API endpoint...\n";
             
-            $simpleResponse = $client->sendSimpleMessage(
+            $simpleResponse = $client->sendSimple(
                 $testPhoneNumber,
                 "Simple API test at " . date('H:i:s'),
                 $testSenderId
