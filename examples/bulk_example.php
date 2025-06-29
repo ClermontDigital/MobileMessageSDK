@@ -6,87 +6,179 @@ use MobileMessage\MobileMessageClient;
 use MobileMessage\DataObjects\Message;
 use MobileMessage\Exceptions\MobileMessageException;
 
-// Initialise the client
-$client = new MobileMessageClient('your_username', 'your_password');
+/**
+ * Bulk Example - Sending Multiple SMS Messages
+ * 
+ * This example shows how to send multiple SMS messages efficiently using the Mobile Message PHP SDK.
+ * 
+ * Setup:
+ * 1. Copy .env.example to .env in the project root
+ * 2. Add your Mobile Message API credentials
+ * 3. Set ENABLE_REAL_SMS_TESTS=true to send actual messages
+ * 4. Run: php examples/bulk_example.php
+ */
+
+// Load environment variables from .env file
+function loadEnv(string $path): void {
+    if (!file_exists($path)) {
+        echo "❌ .env file not found. Please copy .env.example to .env and add your credentials.\n";
+        exit(1);
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
 
 try {
-    echo "Mobile Message PHP SDK - Bulk Messaging Example\n";
-    echo "===============================================\n\n";
+    echo "📬 Mobile Message PHP SDK - Bulk Example\n";
+    echo "========================================\n\n";
 
-    // Check balance first
+    // Load credentials from .env
+    loadEnv(__DIR__ . '/../.env');
+    
+    $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? null;
+    $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? null;
+    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '61412345678';
+    $senderId = $_ENV['TEST_SENDER_ID'] ?? 'TEST';
+
+    if (!$username || !$password || $username === 'your_username_here') {
+        throw new Exception('Please configure your API credentials in the .env file');
+    }
+
+    // Initialise the client
+    echo "🔧 Initialising client...\n";
+    $client = new MobileMessageClient($username, $password);
+
+    // Check account balance
+    echo "💰 Checking account balance...\n";
     $balance = $client->getBalance();
-    echo "Account balance: {$balance->getBalance()} credits\n\n";
+    echo "   Balance: {$balance->getBalance()} credits\n";
+    echo "   Plan: {$balance->getPlan()}\n\n";
 
-    // Prepare multiple messages
+    // Check if real SMS is enabled
+    $enableRealSms = filter_var($_ENV['ENABLE_REAL_SMS_TESTS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    
+    if (!$enableRealSms) {
+        echo "⚠️  Real SMS sending is disabled.\n";
+        echo "   Set ENABLE_REAL_SMS_TESTS=true in .env to send actual SMS messages.\n";
+        echo "   This example will only validate your setup without sending messages.\n\n";
+        
+        // Show what would be sent
+        echo "📝 Messages that would be sent:\n";
+        $timestamp = time();
+        $sampleMessages = [
+            new Message($testPhone, "Welcome to our service! Your account is now active.", $senderId, "welcome-{$timestamp}"),
+            new Message($testPhone, "Reminder: Your appointment is tomorrow at 2 PM.", $senderId, "reminder-{$timestamp}"),
+            new Message($testPhone, "Thank you for your purchase! Order #12345 is confirmed.", $senderId, "order-{$timestamp}"),
+            new Message($testPhone, "Your verification code is: 123456", $senderId, "verify-{$timestamp}"),
+        ];
+        
+        foreach ($sampleMessages as $index => $message) {
+            $num = $index + 1;
+            echo "   {$num}. To: {$message->getTo()}\n";
+            echo "      Message: {$message->getMessage()}\n";
+            echo "      From: {$message->getSender()}\n";
+            echo "      Ref: {$message->getCustomRef()}\n\n";
+        }
+        
+        echo "✅ Bulk example setup validated!\n";
+        exit(0);
+    }
+
+    // Create multiple messages
+    echo "📝 Preparing bulk messages...\n";
+    $timestamp = time();
+    
     $messages = [
         new Message(
-            '0412345678',
-            'Welcome to our service! Your account has been activated.',
-            'YourApp',
-            'welcome-001'
+            $testPhone,
+            "Bulk message 1: Welcome to our service! Sent at " . date('H:i:s'),
+            $senderId,
+            "bulk-welcome-{$timestamp}"
         ),
         new Message(
-            '0412345679',
-            'Reminder: Your appointment is scheduled for tomorrow at 2 PM.',
-            'YourApp',
-            'reminder-002'
+            $testPhone,
+            "Bulk message 2: Your account is now active. Sent at " . date('H:i:s'),
+            $senderId,
+            "bulk-active-{$timestamp}"
         ),
         new Message(
-            '0412345680',
-            'Thank you for your purchase! Your order #12345 is being processed.',
-            'YourApp',
-            'order-003'
+            $testPhone,
+            "Bulk message 3: Thank you for joining us! Sent at " . date('H:i:s'),
+            $senderId,
+            "bulk-thanks-{$timestamp}"
         ),
         new Message(
-            '0412345681',
-            'Your verification code is: 789123. This code expires in 10 minutes.',
-            'YourApp',
-            'verify-004'
+            $testPhone,
+            "Bulk message 4: This is your final test message. Sent at " . date('H:i:s'),
+            $senderId,
+            "bulk-final-{$timestamp}"
         ),
     ];
 
-    echo "Sending {" . count($messages) . "} messages...\n\n";
+    echo "   📊 Prepared " . count($messages) . " messages\n\n";
 
-    // Send all messages in one request
+    // Send all messages at once
+    echo "📬 Sending bulk messages...\n";
     $responses = $client->sendMessages($messages);
 
-    $successCount = 0;
-    $failCount = 0;
+    // Process responses
+    echo "✅ Bulk send completed! Processing results...\n\n";
     $totalCost = 0;
+    $successCount = 0;
 
     foreach ($responses as $index => $response) {
         $messageNum = $index + 1;
-        echo "Message {$messageNum}:\n";
-        echo "  To: {$response->getTo()}\n";
-        echo "  Status: {$response->getStatus()}\n";
-        echo "  Cost: {$response->getCost()} credits\n";
+        echo "📨 Message {$messageNum}:\n";
         
         if ($response->isSuccess()) {
-            echo "  ✅ Sent successfully (ID: {$response->getMessageId()})\n";
             $successCount++;
+            $totalCost += $response->getCost();
+            echo "   ✅ Status: Sent successfully\n";
+            echo "   📨 ID: {$response->getMessageId()}\n";
+            echo "   💰 Cost: {$response->getCost()}\n";
+            echo "   📱 To: {$response->getTo()}\n";
+            echo "   🏷️  Ref: {$response->getCustomRef()}\n";
         } else {
-            echo "  ❌ Failed to send\n";
-            $failCount++;
+            echo "   ❌ Status: Failed to send\n";
+            echo "   📱 To: {$response->getTo()}\n";
         }
-        
-        $totalCost += $response->getCost();
-        echo "  Custom Ref: {$response->getCustomRef()}\n\n";
+        echo "\n";
     }
 
     // Summary
-    echo "Summary:\n";
-    echo "========\n";
-    echo "Total messages: " . count($responses) . "\n";
-    echo "Successful: {$successCount}\n";
-    echo "Failed: {$failCount}\n";
-    echo "Total cost: {$totalCost} credits\n";
+    echo "📊 Bulk Send Summary:\n";
+    echo "====================\n";
+    echo "📤 Total messages: " . count($messages) . "\n";
+    echo "✅ Successful: {$successCount}\n";
+    echo "❌ Failed: " . (count($messages) - $successCount) . "\n";
+    echo "💰 Total cost: {$totalCost} credits\n\n";
 
-    // Check remaining balance
-    $newBalance = $client->getBalance();
-    echo "Remaining balance: {$newBalance->getBalance()} credits\n";
+    // Optional: Check status of first message
+    if ($successCount > 0 && $responses[0]->isSuccess()) {
+        echo "🔍 Checking status of first message...\n";
+        sleep(2); // Wait for processing
+        
+        $status = $client->getMessageStatus($responses[0]->getMessageId());
+        echo "   📊 Status: {$status->getStatus()}\n";
+        echo "   📅 Sent: {$status->getSentAt()}\n";
+        
+        if ($status->getDeliveredAt()) {
+            echo "   ✅ Delivered: {$status->getDeliveredAt()}\n";
+        }
+    }
+
+    echo "\n🎉 Bulk example completed!\n";
 
 } catch (MobileMessageException $e) {
+    echo "❌ Mobile Message API Error: " . $e->getMessage() . "\n";
+    echo "🔧 Please check your API credentials and try again.\n";
+} catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";
-}
-
-echo "\nBulk messaging example completed!\n"; 
+} 

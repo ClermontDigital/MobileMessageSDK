@@ -5,64 +5,109 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use MobileMessage\MobileMessageClient;
 use MobileMessage\Exceptions\MobileMessageException;
 
-// Initialise the client with your credentials
-$client = new MobileMessageClient('your_username', 'your_password');
+/**
+ * Basic Example - Sending a Single SMS
+ * 
+ * This example shows how to send a single SMS message using the Mobile Message PHP SDK.
+ * 
+ * Setup:
+ * 1. Copy .env.example to .env in the project root
+ * 2. Add your Mobile Message API credentials
+ * 3. Run: php examples/basic_example.php
+ */
+
+// Load environment variables from .env file
+function loadEnv(string $path): void {
+    if (!file_exists($path)) {
+        echo "❌ .env file not found. Please copy .env.example to .env and add your credentials.\n";
+        exit(1);
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
 
 try {
-    echo "Mobile Message PHP SDK - Basic Example\n";
-    echo "=====================================\n\n";
+    echo "📱 Mobile Message PHP SDK - Basic Example\n";
+    echo "=========================================\n\n";
+
+    // Load credentials from .env
+    loadEnv(__DIR__ . '/../.env');
+    
+    $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? null;
+    $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? null;
+    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '61412345678';
+    $senderId = $_ENV['TEST_SENDER_ID'] ?? 'TEST';
+
+    if (!$username || !$password || $username === 'your_username_here') {
+        throw new Exception('Please configure your API credentials in the .env file');
+    }
+
+    // Initialise the client
+    echo "🔧 Initialising client...\n";
+    $client = new MobileMessageClient($username, $password);
 
     // Check account balance first
-    echo "1. Checking account balance...\n";
+    echo "💰 Checking account balance...\n";
     $balance = $client->getBalance();
     echo "   Balance: {$balance->getBalance()} credits\n";
     echo "   Plan: {$balance->getPlan()}\n\n";
 
-    if (!$balance->hasCredits()) {
-        echo "   ⚠️  Warning: You have no credits remaining!\n\n";
+    // Check if real SMS is enabled
+    $enableRealSms = filter_var($_ENV['ENABLE_REAL_SMS_TESTS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    
+    if (!$enableRealSms) {
+        echo "⚠️  Real SMS sending is disabled.\n";
+        echo "   Set ENABLE_REAL_SMS_TESTS=true in .env to send actual SMS messages.\n";
+        echo "   This example will only check your credentials and balance.\n\n";
+        echo "✅ Basic example completed successfully!\n";
+        exit(0);
     }
 
-    // Send a single SMS message
-    echo "2. Sending SMS message...\n";
+    // Send SMS message
+    echo "📱 Sending SMS message...\n";
     $response = $client->sendMessage(
-        '0412345678',                           // recipient phone number
-        'Hello! This is a test message from the Mobile Message PHP SDK.',
-        'TestApp',                              // sender ID (must be approved)
-        'example-' . time()                     // custom reference for tracking
+        $testPhone,
+        'Hello from Mobile Message PHP SDK! Sent at ' . date('Y-m-d H:i:s'),
+        $senderId,
+        'basic-example-' . time()
     );
 
+    // Display results
     if ($response->isSuccess()) {
-        echo "   ✅ Message sent successfully!\n";
-        echo "   Message ID: {$response->getMessageId()}\n";
-        echo "   Cost: {$response->getCost()} credits\n";
-        echo "   Status: {$response->getStatus()}\n\n";
+        echo "✅ Message sent successfully!\n";
+        echo "   📨 Message ID: {$response->getMessageId()}\n";
+        echo "   💰 Cost: {$response->getCost()}\n";
+        echo "   📱 To: {$response->getTo()}\n";
+        echo "   👤 From: {$response->getSender()}\n";
+        echo "   🏷️  Reference: {$response->getCustomRef()}\n\n";
 
-        // Wait a moment then check message status
-        echo "3. Checking message status...\n";
-        sleep(2); // Wait 2 seconds
+        // Optional: Check message status
+        echo "🔍 Checking message status...\n";
+        sleep(2); // Wait for processing
         
-        $status = $client->getMessage($response->getMessageId());
-        echo "   Current status: {$status->getStatus()}\n";
-        echo "   Delivered: " . ($status->isDelivered() ? 'Yes' : 'No') . "\n";
-        echo "   Failed: " . ($status->isFailed() ? 'Yes' : 'No') . "\n";
-        
-        if ($status->getSentAt()) {
-            echo "   Sent at: {$status->getSentAt()}\n";
-        }
+        $status = $client->getMessageStatus($response->getMessageId());
+        echo "   📊 Status: {$status->getStatus()}\n";
+        echo "   📅 Sent: {$status->getSentAt()}\n";
         
         if ($status->getDeliveredAt()) {
-            echo "   Delivered at: {$status->getDeliveredAt()}\n";
+            echo "   ✅ Delivered: {$status->getDeliveredAt()}\n";
         }
-        
     } else {
-        echo "   ❌ Failed to send message\n";
-        echo "   Status: {$response->getStatus()}\n";
-        echo "   Error: " . ($response->isError() ? 'Yes' : 'No') . "\n";
+        echo "❌ Failed to send message\n";
     }
 
-} catch (MobileMessageException $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
-    echo "Please check your credentials and try again.\n";
-}
+    echo "\n🎉 Basic example completed!\n";
 
-echo "\nExample completed!\n"; 
+} catch (MobileMessageException $e) {
+    echo "❌ Mobile Message API Error: " . $e->getMessage() . "\n";
+    echo "🔧 Please check your API credentials and try again.\n";
+} catch (Exception $e) {
+    echo "❌ Error: " . $e->getMessage() . "\n";
+} 
