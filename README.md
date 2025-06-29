@@ -355,21 +355,57 @@ try {
 
 ## Testing
 
-Run the test suite:
+### Quick Start Testing Setup
+
+For easy testing with your real Mobile Message API credentials:
 
 ```bash
-# Run all tests
+# Run the interactive setup script
+./setup-testing.sh
+```
+
+This will:
+- Create a `.env` file with your API credentials
+- Configure test phone number and sender ID
+- Set up safety controls for real SMS testing
+
+### Manual Testing Setup
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your credentials:
+   ```env
+   MOBILE_MESSAGE_USERNAME=your_username
+   MOBILE_MESSAGE_PASSWORD=your_password
+   TEST_PHONE_NUMBER=61412345678
+   TEST_SENDER_ID=TEST
+   ENABLE_REAL_SMS_TESTS=false  # Set to true to send real SMS
+   ```
+
+### Running Tests
+
+```bash
+# Unit tests only (safe, no API calls)
 composer test
 
-# Run with coverage
+# Integration tests (requires valid .env credentials)
+composer test -- --testsuite Integration
+
+# Test coverage report
 composer test-coverage
 
-# Run only unit tests
-./vendor/bin/phpunit --testsuite Unit
+# Comprehensive test script with real API
+php examples/test_example.php
 
-# Run integration tests (requires real API credentials)
-MOBILE_MESSAGE_USERNAME=your_user MOBILE_MESSAGE_PASSWORD=your_pass ./vendor/bin/phpunit --testsuite Integration
+# Test individual examples
+php examples/basic_example.php
+php examples/bulk_example.php
 ```
+
+**⚠️ Important:** Integration tests with `ENABLE_REAL_SMS_TESTS=true` will send actual SMS messages and use credits from your Mobile Message account.
 
 ## Examples
 
