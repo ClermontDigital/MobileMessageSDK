@@ -40,13 +40,17 @@ try {
     // Load credentials from .env
     loadEnv(__DIR__ . '/../.env');
     
-    $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? null;
-    $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? null;
-    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '61412345678';
-    $senderId = $_ENV['TEST_SENDER_ID'] ?? 'TEST';
+    $username = $_ENV['API_USERNAME'] ?? null;
+    $password = $_ENV['API_PASSWORD'] ?? null;
+    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '0400322583';
+    $senderId = $_ENV['SENDER_PHONE_NUMBER'] ?? null;
 
-    if (!$username || !$password || $username === 'your_username_here') {
+    if (!$username || !$password || $username === 'your_api_username_here') {
         throw new Exception('Please configure your API credentials in the .env file');
+    }
+
+    if (!$senderId) {
+        throw new Exception('Please configure your SENDER_PHONE_NUMBER in the .env file');
     }
 
     // Initialise the client

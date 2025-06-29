@@ -378,11 +378,12 @@ This will:
 
 2. Edit `.env` with your credentials:
    ```env
-   MOBILE_MESSAGE_USERNAME=your_username
-   MOBILE_MESSAGE_PASSWORD=your_password
-   TEST_PHONE_NUMBER=61412345678
-   TEST_SENDER_ID=TEST
+   API_USERNAME=your_api_username
+   API_PASSWORD=your_api_password
+   TEST_PHONE_NUMBER=0400322583
+   SENDER_PHONE_NUMBER=your_sender_phone
    ENABLE_REAL_SMS_TESTS=false  # Set to true to send real SMS
+   ENABLE_BULK_SMS_TESTS=false  # Set to true to enable bulk testing
    ```
 
 ### Running Tests

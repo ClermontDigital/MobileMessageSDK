@@ -64,19 +64,24 @@ try {
     loadEnv($envPath);
 
     // Get credentials from environment
-    $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? null;
-    $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? null;
+    $username = $_ENV['API_USERNAME'] ?? null;
+    $password = $_ENV['API_PASSWORD'] ?? null;
     $testPhoneNumber = $_ENV['TEST_PHONE_NUMBER'] ?? null;
-    $testSenderId = $_ENV['TEST_SENDER_ID'] ?? 'TEST';
+    $testSenderId = $_ENV['SENDER_PHONE_NUMBER'] ?? null;
     $enableRealSmsTests = filter_var($_ENV['ENABLE_REAL_SMS_TESTS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    $enableBulkSmsTests = filter_var($_ENV['ENABLE_BULK_SMS_TESTS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 
     // Validate credentials
     if (!$username || !$password) {
-        throw new Exception('Missing MOBILE_MESSAGE_USERNAME or MOBILE_MESSAGE_PASSWORD in .env file');
+        throw new Exception('Missing API_USERNAME or API_PASSWORD in .env file');
     }
 
-    if ($username === 'your_username_here' || $password === 'your_password_here') {
+    if ($username === 'your_api_username_here' || $password === 'your_api_password_here') {
         throw new Exception('Please update your .env file with real API credentials');
+    }
+
+    if (!$testSenderId) {
+        throw new Exception('Missing SENDER_PHONE_NUMBER in .env file');
     }
 
     // Initialize client
@@ -139,23 +144,29 @@ try {
             echo "   ⏳ Pending: " . ($status->isPending() ? 'Yes' : 'No') . "\n";
             echo "   ❌ Failed: " . ($status->isFailed() ? 'Yes' : 'No') . "\n\n";
 
-            // Test 5: Send bulk messages
-            echo "📬 Testing bulk SMS sending...\n";
-            
-            $bulkMessages = [
-                new Message($testPhoneNumber, "Bulk message 1 at " . date('H:i:s'), $testSenderId, 'bulk-1-' . time()),
-                new Message($testPhoneNumber, "Bulk message 2 at " . date('H:i:s'), $testSenderId, 'bulk-2-' . time()),
-            ];
+            // Test 5: Send bulk messages (only if enabled)
+            if ($enableBulkSmsTests) {
+                echo "📬 Testing bulk SMS sending...\n";
+                echo "⚠️  This will send 2 SMS messages to {$testPhoneNumber}\n";
+                
+                $bulkMessages = [
+                    new Message($testPhoneNumber, "Bulk message 1 at " . date('H:i:s'), $testSenderId, 'bulk-1-' . time()),
+                    new Message($testPhoneNumber, "Bulk message 2 at " . date('H:i:s'), $testSenderId, 'bulk-2-' . time()),
+                ];
 
-            $bulkResponses = $client->sendMessages($bulkMessages);
-            
-            echo "✅ Bulk messages sent successfully!\n";
-            foreach ($bulkResponses as $index => $bulkResponse) {
-                $num = $index + 1;
-                echo "   📨 Message {$num} ID: {$bulkResponse->getMessageId()}\n";
-                echo "   📨 Message {$num} Cost: {$bulkResponse->getCost()}\n";
+                $bulkResponses = $client->sendMessages($bulkMessages);
+                
+                echo "✅ Bulk messages sent successfully!\n";
+                foreach ($bulkResponses as $index => $bulkResponse) {
+                    $num = $index + 1;
+                    echo "   📨 Message {$num} ID: {$bulkResponse->getMessageId()}\n";
+                    echo "   📨 Message {$num} Cost: {$bulkResponse->getCost()}\n";
+                }
+                echo "\n";
+            } else {
+                echo "📬 Bulk SMS testing disabled (ENABLE_BULK_SMS_TESTS=false)\n";
+                echo "   Set ENABLE_BULK_SMS_TESTS=true in .env to test bulk messaging\n\n";
             }
-            echo "\n";
 
             // Test 6: Test simple API endpoint
             echo "🎯 Testing simple API endpoint...\n";
@@ -210,7 +221,11 @@ try {
     if ($enableRealSmsTests && $testPhoneNumber) {
         echo "✅ Single SMS sending: Passed\n";
         echo "✅ Message status lookup: Passed\n";
-        echo "✅ Bulk SMS sending: Passed\n";
+        if ($enableBulkSmsTests) {
+            echo "✅ Bulk SMS sending: Passed\n";
+        } else {
+            echo "⚠️  Bulk SMS sending: Skipped (not enabled)\n";
+        }
         echo "✅ Simple API endpoint: Passed\n";
     } else {
         echo "⚠️  SMS sending tests: Skipped (not enabled)\n";

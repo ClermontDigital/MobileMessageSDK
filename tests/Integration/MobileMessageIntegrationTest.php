@@ -15,10 +15,12 @@ use PHPUnit\Framework\TestCase;
  * These tests require valid API credentials to run.
  * 
  * Setup:
- * 1. Copy .env.example to .env
- * 2. Add your Mobile Message API credentials
- * 3. Set TEST_PHONE_NUMBER to a number you own
- * 4. Set ENABLE_REAL_SMS_TESTS=true to test actual SMS sending
+          * 1. Copy .env.example to .env
+         * 2. Add your Mobile Message API credentials (API_USERNAME, API_PASSWORD)
+         * 3. Set TEST_PHONE_NUMBER to a number you own  
+         * 4. Set SENDER_PHONE_NUMBER to your registered sender number
+         * 5. Set ENABLE_REAL_SMS_TESTS=true to test actual SMS sending
+         * 6. Set ENABLE_BULK_SMS_TESTS=true to test bulk messaging (sends multiple SMS)
  * 
  * To run integration tests:
  * ./vendor/bin/phpunit --testsuite Integration
@@ -29,6 +31,7 @@ class MobileMessageIntegrationTest extends TestCase
     private ?string $testPhoneNumber = null;
     private ?string $testSenderId = null;
     private bool $enableRealSmsTests = false;
+    private bool $enableBulkSmsTests = false;
 
     protected function setUp(): void
     {
@@ -51,20 +54,24 @@ class MobileMessageIntegrationTest extends TestCase
             }
         }
 
-        $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? getenv('MOBILE_MESSAGE_USERNAME') ?: null;
-        $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? getenv('MOBILE_MESSAGE_PASSWORD') ?: null;
+        $username = $_ENV['API_USERNAME'] ?? getenv('API_USERNAME') ?: null;
+        $password = $_ENV['API_PASSWORD'] ?? getenv('API_PASSWORD') ?: null;
         $this->testPhoneNumber = $_ENV['TEST_PHONE_NUMBER'] ?? getenv('TEST_PHONE_NUMBER') ?: null;
-        $this->testSenderId = $_ENV['TEST_SENDER_ID'] ?? getenv('TEST_SENDER_ID') ?: 'TEST';
+        $this->testSenderId = $_ENV['SENDER_PHONE_NUMBER'] ?? getenv('SENDER_PHONE_NUMBER') ?: null;
         $this->enableRealSmsTests = filter_var(
             $_ENV['ENABLE_REAL_SMS_TESTS'] ?? getenv('ENABLE_REAL_SMS_TESTS') ?: 'false',
             FILTER_VALIDATE_BOOLEAN
         );
+        $this->enableBulkSmsTests = filter_var(
+            $_ENV['ENABLE_BULK_SMS_TESTS'] ?? getenv('ENABLE_BULK_SMS_TESTS') ?: 'false',
+            FILTER_VALIDATE_BOOLEAN
+        );
 
         if (!$username || !$password) {
-            $this->markTestSkipped('Integration tests require MOBILE_MESSAGE_USERNAME and MOBILE_MESSAGE_PASSWORD in .env file');
+            $this->markTestSkipped('Integration tests require API_USERNAME and API_PASSWORD in .env file');
         }
 
-        if ($username === 'your_username_here' || $password === 'your_password_here') {
+        if ($username === 'your_api_username_here' || $password === 'your_api_password_here') {
             $this->markTestSkipped('Integration tests require real API credentials, please update your .env file');
         }
 
@@ -107,6 +114,10 @@ class MobileMessageIntegrationTest extends TestCase
 
         if (!$this->testPhoneNumber) {
             $this->markTestSkipped('TEST_PHONE_NUMBER not configured in .env file');
+        }
+
+        if (!$this->testSenderId) {
+            $this->markTestSkipped('SENDER_PHONE_NUMBER not configured in .env file');
         }
 
         $testMessage = 'Integration test from Mobile Message PHP SDK at ' . date('Y-m-d H:i:s');
@@ -154,8 +165,16 @@ class MobileMessageIntegrationTest extends TestCase
             $this->markTestSkipped('Real SMS tests disabled. Set ENABLE_REAL_SMS_TESTS=true in .env to enable');
         }
 
+        if (!$this->enableBulkSmsTests) {
+            $this->markTestSkipped('Bulk SMS tests disabled. Set ENABLE_BULK_SMS_TESTS=true in .env to enable (will send multiple SMS)');
+        }
+
         if (!$this->testPhoneNumber) {
             $this->markTestSkipped('TEST_PHONE_NUMBER not configured in .env file');
+        }
+
+        if (!$this->testSenderId) {
+            $this->markTestSkipped('SENDER_PHONE_NUMBER not configured in .env file');
         }
 
         $timestamp = time();
@@ -203,6 +222,10 @@ class MobileMessageIntegrationTest extends TestCase
 
         if (!$this->testPhoneNumber) {
             $this->markTestSkipped('TEST_PHONE_NUMBER not configured in .env file');
+        }
+
+        if (!$this->testSenderId) {
+            $this->markTestSkipped('SENDER_PHONE_NUMBER not configured in .env file');
         }
 
         $testMessage = 'Simple API test at ' . date('H:i:s');

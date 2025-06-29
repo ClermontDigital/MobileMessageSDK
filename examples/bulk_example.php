@@ -42,13 +42,18 @@ try {
     // Load credentials from .env
     loadEnv(__DIR__ . '/../.env');
     
-    $username = $_ENV['MOBILE_MESSAGE_USERNAME'] ?? null;
-    $password = $_ENV['MOBILE_MESSAGE_PASSWORD'] ?? null;
-    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '61412345678';
-    $senderId = $_ENV['TEST_SENDER_ID'] ?? 'TEST';
+    $username = $_ENV['API_USERNAME'] ?? null;
+    $password = $_ENV['API_PASSWORD'] ?? null;
+    $testPhone = $_ENV['TEST_PHONE_NUMBER'] ?? '0400322583';
+    $senderId = $_ENV['SENDER_PHONE_NUMBER'] ?? null;
+    $enableBulkSmsTests = filter_var($_ENV['ENABLE_BULK_SMS_TESTS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 
-    if (!$username || !$password || $username === 'your_username_here') {
+    if (!$username || !$password || $username === 'your_api_username_here') {
         throw new Exception('Please configure your API credentials in the .env file');
+    }
+
+    if (!$senderId) {
+        throw new Exception('Please configure your SENDER_PHONE_NUMBER in the .env file');
     }
 
     // Initialise the client
@@ -68,6 +73,10 @@ try {
         echo "⚠️  Real SMS sending is disabled.\n";
         echo "   Set ENABLE_REAL_SMS_TESTS=true in .env to send actual SMS messages.\n";
         echo "   This example will only validate your setup without sending messages.\n\n";
+    } elseif (!$enableBulkSmsTests) {
+        echo "⚠️  Bulk SMS testing is disabled.\n";
+        echo "   Set ENABLE_BULK_SMS_TESTS=true in .env to send bulk SMS messages.\n";
+        echo "   This will send multiple SMS messages and use more credits.\n\n";
         
         // Show what would be sent
         echo "📝 Messages that would be sent:\n";
@@ -88,6 +97,14 @@ try {
         }
         
         echo "✅ Bulk example setup validated!\n";
+        exit(0);
+    }
+
+    if (!$enableBulkSmsTests) {
+        echo "⚠️  Bulk SMS testing is disabled.\n";
+        echo "   Set ENABLE_BULK_SMS_TESTS=true in .env to send bulk SMS messages.\n";
+        echo "   This will send multiple SMS messages and use more credits.\n\n";
+        echo "✅ Bulk example validation completed!\n";
         exit(0);
     }
 
@@ -126,6 +143,7 @@ try {
 
     // Send all messages at once
     echo "📬 Sending bulk messages...\n";
+    echo "⚠️  This will send " . count($messages) . " SMS messages to {$testPhone}\n";
     $responses = $client->sendMessages($messages);
 
     // Process responses

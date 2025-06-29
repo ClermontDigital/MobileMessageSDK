@@ -25,19 +25,20 @@ cp .env.example .env
 echo "🔧 Please provide your Mobile Message API credentials:"
 echo
 
-read -p "Mobile Message Username: " username
-read -s -p "Mobile Message Password: " password
+read -p "API Username: " username
+read -s -p "API Password: " password
 echo
-read -p "Test Phone Number (e.g., 61412345678): " phone
-read -p "Test Sender ID (e.g., TEST): " sender
+read -p "Test Phone Number (default: 0400322583): " phone
+read -p "Sender Phone Number (your registered sender): " sender
 
-# Default sender if not provided
-if [ -z "$sender" ]; then
-    sender="TEST"
+# Default phone if not provided
+if [ -z "$phone" ]; then
+    phone="0400322583"
 fi
 
 echo
 read -p "Enable real SMS sending for tests? (y/N): " enable_sms
+read -p "Enable bulk SMS tests? (y/N): " enable_bulk
 
 # Set enable_sms to boolean
 if [[ $enable_sms =~ ^[Yy]$ ]]; then
@@ -46,15 +47,23 @@ else
     enable_sms="false"
 fi
 
+# Set enable_bulk to boolean
+if [[ $enable_bulk =~ ^[Yy]$ ]]; then
+    enable_bulk="true"
+else
+    enable_bulk="false"
+fi
+
 # Update .env file
 echo "📝 Updating .env file..."
 
 # Use sed to replace values in .env file
-sed -i.bak "s/MOBILE_MESSAGE_USERNAME=.*/MOBILE_MESSAGE_USERNAME=$username/" .env
-sed -i.bak "s/MOBILE_MESSAGE_PASSWORD=.*/MOBILE_MESSAGE_PASSWORD=$password/" .env
+sed -i.bak "s/API_USERNAME=.*/API_USERNAME=$username/" .env
+sed -i.bak "s/API_PASSWORD=.*/API_PASSWORD=$password/" .env
 sed -i.bak "s/TEST_PHONE_NUMBER=.*/TEST_PHONE_NUMBER=$phone/" .env
-sed -i.bak "s/TEST_SENDER_ID=.*/TEST_SENDER_ID=$sender/" .env
+sed -i.bak "s/SENDER_PHONE_NUMBER=.*/SENDER_PHONE_NUMBER=$sender/" .env
 sed -i.bak "s/ENABLE_REAL_SMS_TESTS=.*/ENABLE_REAL_SMS_TESTS=$enable_sms/" .env
+sed -i.bak "s/ENABLE_BULK_SMS_TESTS=.*/ENABLE_BULK_SMS_TESTS=$enable_bulk/" .env
 
 # Remove backup file
 rm .env.bak
@@ -62,11 +71,12 @@ rm .env.bak
 echo "✅ Configuration complete!"
 echo
 echo "📊 Your settings:"
-echo "   Username: $username"
-echo "   Password: [HIDDEN]"
+echo "   API Username: $username"
+echo "   API Password: [HIDDEN]"
 echo "   Test Phone: $phone"
-echo "   Sender ID: $sender"
+echo "   Sender Phone: $sender"
 echo "   Real SMS Tests: $enable_sms"
+echo "   Bulk SMS Tests: $enable_bulk"
 echo
 
 echo "🧪 Available test commands:"
@@ -83,7 +93,14 @@ if [ "$enable_sms" = "true" ]; then
     echo "   - Use credits from your Mobile Message account"
     echo "   - Charge according to your Mobile Message pricing"
     echo
-    echo "   To disable real SMS tests, set ENABLE_REAL_SMS_TESTS=false in .env"
+    if [ "$enable_bulk" = "true" ]; then
+        echo "⚠️  BULK SMS tests are also enabled. These will:"
+        echo "   - Send MULTIPLE SMS messages in bulk tests"
+        echo "   - Use MORE credits from your account"
+        echo "   - To disable bulk tests only, set ENABLE_BULK_SMS_TESTS=false in .env"
+        echo
+    fi
+    echo "   To disable all real SMS tests, set ENABLE_REAL_SMS_TESTS=false in .env"
     echo
 fi
 
