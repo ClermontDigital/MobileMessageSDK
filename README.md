@@ -1,9 +1,10 @@
 # Mobile Message PHP SDK
 
-[![Latest Version](https://img.shields.io/packagist/v/mobilemessage/php-sdk.svg)](https://packagist.org/packages/mobilemessage/php-sdk)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-[![Build Status](https://img.shields.io/github/workflow/status/ClermontDigital/MobileMessageSDK/tests)](https://github.com/ClermontDigital/MobileMessageSDK/actions)
-[![Total Downloads](https://img.shields.io/packagist/dt/mobilemessage/php-sdk.svg)](https://packagist.org/packages/mobilemessage/php-sdk)
+[![Latest Version](https://img.shields.io/packagist/v/mobilemessage/php-sdk.svg?style=flat-square)](https://packagist.org/packages/mobilemessage/php-sdk)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![Total Downloads](https://img.shields.io/packagist/dt/mobilemessage/php-sdk.svg?style=flat-square)](https://packagist.org/packages/mobilemessage/php-sdk)
+[![GitHub Stars](https://img.shields.io/github/stars/ClermontDigital/MobileMessageSDK.svg?style=flat-square)](https://github.com/ClermontDigital/MobileMessageSDK/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/ClermontDigital/MobileMessageSDK.svg?style=flat-square)](https://github.com/ClermontDigital/MobileMessageSDK/issues)
 
 An **unofficial** PHP SDK for the [Mobile Message SMS API](https://mobilemessage.com.au/). Send SMS messages, track delivery status, and manage your messaging campaigns with Australia's leading SMS service.
 
