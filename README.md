@@ -14,6 +14,7 @@ An **unofficial** PHP SDK for the [Mobile Message SMS API](https://mobilemessage
 - ✅ Track message delivery status
 - ✅ Check account balance
 - ✅ Simple and Advanced API endpoints
+- ✅ Automatic message validation before sending
 - ✅ Comprehensive error handling
 - ✅ Laravel and CodeIgniter compatible
 - ✅ PSR-4 autoloading
@@ -76,7 +77,14 @@ $client = new MobileMessageClient('your_username', 'your_password', [
     'timeout' => 60,
     'connect_timeout' => 10,
 ]);
+
+// Optional: Override the default base URL (e.g., for staging)
+$client = new MobileMessageClient('your_username', 'your_password', [
+    'base_uri' => 'https://staging.api.mobilemessage.com.au/',
+]);
 ```
+
+> **Note:** The constructor will throw a `ValidationException` if the username or password is empty.
 
 ### Sending Messages
 
@@ -112,16 +120,6 @@ foreach ($responses as $response) {
 }
 ```
 
-#### Simple API (for basic use cases)
-
-```php
-$response = $client->sendSimple(
-    '61412345678',              // international format
-    'Hello World!',
-    'YourApp'
-);
-```
-
 ### Checking Account Balance
 
 ```php
@@ -152,6 +150,17 @@ if ($status->getDeliveredAt()) {
 ```
 
 ### Message Validation
+
+Messages are **automatically validated** before sending via `sendMessage()` and `sendMessages()`. The following rules are enforced:
+
+- Message content cannot be empty
+- Message length cannot exceed 765 characters
+- Recipient phone number is required
+- Sender ID is required
+
+Both ASCII and Unicode messages are accepted.
+
+You can also validate manually:
 
 ```php
 use MobileMessage\DataObjects\Message;
@@ -426,7 +435,6 @@ See the `examples/` directory for complete working examples:
 |--------|-------------|------------|---------|
 | `sendMessage()` | Send a single SMS | `$to, $message, $sender, $customRef?` | `MessageResponse` |
 | `sendMessages()` | Send multiple SMS | `Message[]` | `MessageResponse[]` |
-| `sendSimple()` | Send via simple API | `$to, $message, $sender, $customRef?` | `MessageResponse` |
 | `getMessage()` | Get message status | `$messageId` | `MessageStatusResponse` |
 | `getBalance()` | Get account balance | - | `BalanceResponse` |
 | `validateMessage()` | Validate message | `Message` | `void` (throws on error) |

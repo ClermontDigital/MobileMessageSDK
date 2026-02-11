@@ -74,7 +74,7 @@ class MessageResponse
 
     public function isError(): bool
     {
-        return in_array($this->status, ['error', 'blocked', 'failed']);
+        return in_array($this->status, ['error', 'blocked', 'failed'], true);
     }
 
     public static function fromArray(array $data): self

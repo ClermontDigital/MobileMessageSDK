@@ -1,37 +1,21 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/helpers.php';
 
 use MobileMessage\MobileMessageClient;
 use MobileMessage\Exceptions\MobileMessageException;
 
 /**
  * Basic Example - Sending a Single SMS
- * 
+ *
  * This example shows how to send a single SMS message using the Mobile Message PHP SDK.
- * 
+ *
  * Setup:
  * 1. Copy .env.example to .env in the project root
  * 2. Add your Mobile Message API credentials
  * 3. Run: php examples/basic_example.php
  */
-
-// Load environment variables from .env file
-function loadEnv(string $path): void {
-    if (!file_exists($path)) {
-        echo "❌ .env file not found. Please copy .env.example to .env and add your credentials.\n";
-        exit(1);
-    }
-
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '#') === 0) continue;
-        if (strpos($line, '=') === false) continue;
-        
-        list($key, $value) = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($value);
-    }
-}
 
 try {
     echo "📱 Mobile Message PHP SDK - Basic Example\n";
@@ -96,7 +80,7 @@ try {
         echo "🔍 Checking message status...\n";
         sleep(2); // Wait for processing
         
-        $status = $client->getMessageStatus($response->getMessageId());
+        $status = $client->getMessage($response->getMessageId());
         echo "   📊 Status: {$status->getStatus()}\n";
         echo "   📅 Sent: {$status->getSentAt()}\n";
         

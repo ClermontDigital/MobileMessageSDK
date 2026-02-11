@@ -90,12 +90,12 @@ class MessageStatusResponse
 
     public function isPending(): bool
     {
-        return in_array($this->status, ['sent', 'pending']);
+        return in_array($this->status, ['sent', 'pending'], true);
     }
 
     public function isFailed(): bool
     {
-        return in_array($this->status, ['failed', 'error', 'blocked']);
+        return in_array($this->status, ['failed', 'error', 'blocked'], true);
     }
 
     public static function fromArray(array $data): self

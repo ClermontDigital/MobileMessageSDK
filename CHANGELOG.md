@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-02-11
+
+### Fixed
+- Fixed `sendMessage()` crash when API returns empty results array (undefined offset)
+- Fixed `sendSimple()` and `getMessage()` silently creating objects with empty fields on missing results
+- Fixed `makeRequest()` silently swallowing invalid JSON responses
+- Fixed `handleHttpException()` crash on non-RequestException Guzzle errors (e.g. ConnectException)
+- Fixed broken `getMessageStatus()` calls in basic and bulk example files (method does not exist, should be `getMessage()`)
+- Fixed potential double-encoding of query parameters in `sendSimple()` by using `RequestOptions::QUERY`
+- Fixed `strlen()` to `mb_strlen()` in message validation for correct multibyte character counting
+- Fixed hardcoded User-Agent version string (was stuck at 1.0.0)
+- Removed unreachable dead code block in bulk example
+
+### Changed
+- Removed overly strict ASCII-only message validation (GSM-7 and Unicode messages now accepted)
+- Renamed `BASE_URL` constant to `DEFAULT_BASE_URL` for clarity (overridable via `$httpOptions['base_uri']`)
+- Added strict comparison to all `in_array()` calls in data objects
+- Extracted shared `loadEnv()` helper for example files
+
+### Added
+- Constructor validation for empty credentials
+- Input validation for empty message ID in `getMessage()`
+- Automatic message validation before sending in `sendMessages()`
+- 16 new unit tests covering: `getBalance()`, `getMessage()`, `sendSimple()`, HTTP error handling (401/400/429/500), network failures, empty results, invalid JSON, and input validation
+
+### Deprecated
+- `sendSimple()` method (credentials exposed in query string; use `sendMessage()` instead)
+
 ## [1.0.1] - 2025-01-29
 
 ### Fixed
